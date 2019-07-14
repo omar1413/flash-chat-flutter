@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 const kSendButtonTextStyle = TextStyle(
   color: Colors.lightBlueAccent,
@@ -34,3 +35,15 @@ const kTextFieldInputDecoration = InputDecoration(
     borderRadius: BorderRadius.all(Radius.circular(32.0)),
   ),
 );
+
+Alert kErrorMsgAlert(BuildContext context,
+    {String msg = 'Some thing went wrong'}) {
+  return Alert(
+    context: context,
+    type: AlertType.error,
+    title: 'Error',
+    content: Text(
+      msg,
+    ),
+  );
+}
