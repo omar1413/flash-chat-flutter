@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 final _firestore = Firestore.instance;
+FirebaseUser loggedInUser;
 
 class ChatScreen extends StatefulWidget {
   static const String id = 'chat_screen';
@@ -13,7 +14,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
-  FirebaseUser loggedInUser;
 
   String messageText;
 
@@ -114,7 +114,7 @@ class MessageStream extends StatelessWidget {
 
         List<TextBubble> messageBubbles = [];
 
-        final messages = snapshot.data.documents;
+        final messages = snapshot.data.documents.reversed;
         for (var message in messages) {
           final msg = message.data['msg'];
           final sender = message.data['sender'];
@@ -123,54 +123,72 @@ class MessageStream extends StatelessWidget {
             messageBubbles.add(TextBubble(
               msg: msg,
               sender: sender,
+              isMe: loggedInUser.email == sender,
             ));
           }
         }
-        return Expanded(child: ListView(children: messageBubbles));
+        return Expanded(
+            child: ListView(reverse: true, children: messageBubbles));
       },
     );
   }
 }
 
 class TextBubble extends StatelessWidget {
-  TextBubble({this.msg, this.sender});
+  TextBubble({this.msg, this.sender, this.isMe = false});
 
   final String msg;
   final String sender;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: <Widget>[
-        Text(
-          sender,
-          style: TextStyle(
-            fontSize: 13.0,
-            color: Colors.black38,
+    return Padding(
+      padding: EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            sender,
+            style: TextStyle(
+              fontSize: 13.0,
+              color: Colors.black38,
+            ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Material(
-            borderRadius: BorderRadius.circular(30.0),
-            color: Colors.lightBlue,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 10.0,
-              ),
-              child: Text(
-                msg,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
+          Padding(
+            padding: EdgeInsets.only(bottom: 8.0, top: 5.0),
+            child: Material(
+              elevation: 5.0,
+              borderRadius: isMe
+                  ? BorderRadius.only(
+                      topLeft: Radius.circular(30.0),
+                      bottomLeft: Radius.circular(30.0),
+                      bottomRight: Radius.circular(30.0),
+                    )
+                  : BorderRadius.only(
+                      topRight: Radius.circular(30.0),
+                      bottomLeft: Radius.circular(30.0),
+                      bottomRight: Radius.circular(30.0),
+                    ),
+              color: isMe ? Colors.lightBlue : Colors.white,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 10.0,
+                ),
+                child: Text(
+                  msg,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: isMe ? Colors.white : Colors.black45,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
